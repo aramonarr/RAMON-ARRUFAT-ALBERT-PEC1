@@ -6,6 +6,9 @@ date: "2024-10-27"
 ##Seleccionar Dataset
 Selecciono el dataset de metabolómica "2024-Cachexia” de este repositorio de github: 
 https://github.com/nutrimetabolomics/metaboData/
+Este análisis busca identificar diferencias en el perfil metabolómico entre pacientes con caquexia y pacientes de 
+control, utilizando técnicas exploratorias como el análisis de componentes principales (PCA) y la 
+visualización de distribuciones de metabolitos.
 
 Ejecuto el siguiente código para instalar SummarizedExperiment y otras dependencias:
 
@@ -26,13 +29,14 @@ save(dataset, file = "human_cachexia_data.Rda")
 ```
 
 
-#Una vez cargado el dataset, creo un objeto SummarizedExperiment utilizando los datos del estudio y sus metadatos:
+#Una vez cargado el dataset, creo un objeto SummarizedExperiment utilizando los datos del estudio y sus metadatos. Seleccionamos solo las columnas numéricas:
 
 ```{r}
+numeric_data <- dataset[, sapply(dataset, is.numeric)]
 library(SummarizedExperiment)
-colData <- DataFrame(SampleID = colnames(dataset), Condition = "CondiciónEjemplo")
-rowData <- DataFrame(FeatureID = rownames(dataset), Description = "DescripciónEjemplo")
-se <- SummarizedExperiment(assays = list(counts = as.matrix(dataset)), rowData = rowData, colData = colData)
+colData <- DataFrame(SampleID = colnames(numeric_data), Condition = "CondiciónEjemplo")
+rowData <- DataFrame(FeatureID = rownames(numeric_data), Description = "DescripciónEjemplo")
+se <- SummarizedExperiment(assays = list(counts = as.matrix(numeric_data)), rowData = rowData, colData = colData)
 se
 ```
 
@@ -43,11 +47,14 @@ numeric_data <- dataset[, sapply(dataset, is.numeric)]
 summary(numeric_data)
 ```
 
-##A continuación, realizamos el análisis de componentes más importantes  y creamos un gráfico de dispersión para visualizar las muestras en los primeros dos componentes principales. Creamos un data frame con los resultados del PCA y graficamos::
+##A continuación, realizamos el análisis de componentes más importantes y creamos un gráfico de dispersión para visualizar las muestras en los primeros dos componentes principales. Realizamos la transformación logarítmica para reducir el sesgo y también evitar valores cero o negativos sumando 1 antes de aplicar el logaritmo. Finalmente creamos un dataframe con los resultados de los componentes principales y graficamos:
+
 
 ```{r}
-pca <- prcomp(numeric_data, scale. = TRUE)
+transformed_data <- log(numeric_data + 1)
+pca <- prcomp(transformed_data, scale. = TRUE)
 pca_df <- data.frame(PC1 = pca$x[, 1], PC2 = pca$x[, 2], Condition = dataset$Muscle.loss)
+
 install.packages("ggplot2")
 library(ggplot2)
 ggplot(pca_df, aes(x = PC1, y = PC2, color = Condition)) +
@@ -55,13 +62,8 @@ ggplot(pca_df, aes(x = PC1, y = PC2, color = Condition)) +
      labs(title = "PCA del Dataset Human Cachexia", x = "Componente Principal 1", y = "Componente Principal 2") 
      theme_minimal()
 
-
-
-
 ```
 #El gráfico muestra una separación entre las muestras de las condiciones cachexic y control en los componentes principales, lo cual sugiere variabilidad en los datos entre estas dos condiciones. 
-
-
 
 #Realizamos también de las variables seleccionadas los histogramas correspondientes.
 ```{r}
@@ -85,5 +87,20 @@ for (var in selected_vars) {
 par(mfrow = c(1, 1))
 ```
 
+#Realizaremos gráficos de caja para los metabolitos seleccionados también:
+
+```{r}
+install.packages("tidyr")
+library(tidyr)
+numeric_data_long <- transformed_data %>%
+  mutate(Condition = dataset$Muscle.loss) %>%
+  pivot_longer(cols = -Condition, names_to = "Metabolite", values_to = "Value")
+
+ggplot(numeric_data_long %>% filter(Metabolite %in% selected_vars), aes(x = Metabolite, y = Value, fill = Condition)) +
+  geom_boxplot() +
+  labs(title = "Distribución de Metabolitos Seleccionados", x = "Metabolito", y = "Concentración") +
+  theme_minimal()
+
+```
 
 
