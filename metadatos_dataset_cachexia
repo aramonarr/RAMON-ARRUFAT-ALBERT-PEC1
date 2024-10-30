@@ -1,0 +1,23 @@
+# Metadatos del dataset Human Cachexia
+
+## Descripción General
+Este dataset contiene datos metabolómicos de pacientes con y sin caquexia (cachexia) muscular. Las muestras se analizaron para evaluar las concentraciones de varios metabolitos en diferentes condiciones.
+
+## Columnas Principales
+
+- **Patient ID**: Identificador único de cada paciente.
+- **Muscle loss**: Condición del paciente (`cachexic` o `control`), indicando si el paciente tiene pérdida        muscular (caquexia) o pertenece al grupo de control.
+- **Metabolitos**: Las columnas restantes corresponden a las concentraciones de diferentes metabolitos, como:
+  - `X1.6.Anhydro.beta.D.glucose`
+  - `X2.Aminobutyrate`
+  - `Citrate`
+  - `Lactate`
+  - ... y muchos otros.
+
+## Información Adicional
+- **Tipo de Datos**: Todas las concentraciones están en formato numérico y representan la cantidad relativa      del metabolito en cada muestra.
+- **Número de Muestras**: 77 muestras en total.
+- **Número de Metabolitos**: 63 metabolitos cuantificados para cada muestra.
+
+## Objetivo del Estudio
+Este análisis busca identificar diferencias en el perfil metabolómico entre pacientes con caquexia y pacientes de control, utilizando técnicas exploratorias como el análisis de componentes principales (PCA) y la visualización de distribuciones de metabolitos.
