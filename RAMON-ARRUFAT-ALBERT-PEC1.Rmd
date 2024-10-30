@@ -17,10 +17,12 @@ if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
 ```
 
 
-##Cargo el dataset en R a partir del archivo que he cargado en mi repositorio de github:
+##Cargo el dataset en R a partir del archivo que he cargado en mi repositorio de github. Aprovechamos también para guardarlo en formato .Rda:
 
 ```{r}
 dataset <- read.csv("https://raw.githubusercontent.com/aramonarr/RAMON-ARRUFAT-ALBERT-PEC1/main/human_cachexia.csv", row.names = 1)
+save(dataset, file = "human_cachexia_data.Rda")
+
 ```
 
 
