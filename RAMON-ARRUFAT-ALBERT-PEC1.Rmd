@@ -1,0 +1,87 @@
+---
+title: "RAMON-ARRUFAT-ALBERT-PEC1"
+output: html_document
+date: "2024-10-27"
+---
+##Seleccionar Dataset
+Selecciono el dataset de metabolómica "2024-Cachexia” de este repositorio de github: 
+https://github.com/nutrimetabolomics/metaboData/
+
+Ejecuto el siguiente código para instalar SummarizedExperiment y otras dependencias:
+
+```{r}
+if (!requireNamespace("SummarizedExperiment", quietly = TRUE)) {
+     install.packages("BiocManager")
+    BiocManager::install("SummarizedExperiment")
+ }
+```
+
+
+##Cargo el dataset en R a partir del archivo que he cargado en mi repositorio de github:
+
+```{r}
+dataset <- read.csv("https://raw.githubusercontent.com/aramonarr/RAMON-ARRUFAT-ALBERT-PEC1/main/human_cachexia.csv", row.names = 1)
+```
+
+
+#Una vez cargado el dataset, creo un objeto SummarizedExperiment utilizando los datos del estudio y sus metadatos:
+
+```{r}
+library(SummarizedExperiment)
+colData <- DataFrame(SampleID = colnames(dataset), Condition = "CondiciónEjemplo")
+rowData <- DataFrame(FeatureID = rownames(dataset), Description = "DescripciónEjemplo")
+se <- SummarizedExperiment(assays = list(counts = as.matrix(dataset)), rowData = rowData, colData = colData)
+se
+```
+
+##Realizo también un resumen estadístico del dataset estudiado, donde primero verifico que solo selecciono columnas numéricas para el resumen:
+
+```{r}
+numeric_data <- dataset[, sapply(dataset, is.numeric)]
+summary(numeric_data)
+```
+
+##A continuación, realizamos el análisis de componentes más importantes  y creamos un gráfico de dispersión para visualizar las muestras en los primeros dos componentes principales. Creamos un data frame con los resultados del PCA y graficamos::
+
+```{r}
+pca <- prcomp(numeric_data, scale. = TRUE)
+pca_df <- data.frame(PC1 = pca$x[, 1], PC2 = pca$x[, 2], Condition = dataset$Muscle.loss)
+install.packages("ggplot2")
+library(ggplot2)
+ggplot(pca_df, aes(x = PC1, y = PC2, color = Condition)) +
+     geom_point() +
+     labs(title = "PCA del Dataset Human Cachexia", x = "Componente Principal 1", y = "Componente Principal 2") 
+     theme_minimal()
+
+
+
+
+```
+#El gráfico muestra una separación entre las muestras de las condiciones cachexic y control en los componentes principales, lo cual sugiere variabilidad en los datos entre estas dos condiciones. 
+
+
+
+#Realizamos también de las variables seleccionadas los histogramas correspondientes.
+```{r}
+selected_vars <- c("X1.6.Anhydro.beta.D.glucose", "X2.Aminobutyrate", "Citrate", "Lactate")
+par(mfrow = c(2, 2)) 
+for (var in selected_vars) {
+     hist(numeric_data[[var]], main = paste("Distribución de", var), xlab = var, col = "skyblue", breaks = 15)
+ }
+par(mfrow = c(1, 1)) 
+ 
+
+```
+#Los gráficos muestran claramente la dispersión de valores para los metabolitos X1.6-Anhydro-beta-D-glucose, X2-Aminobutyrate, Citrate, y Lactate, con una distribución sesgada hacia valores más bajos en la mayoría de los casos, lo que es común en datos de metabolómica.
+
+#Dado que las distribuciones están sesgadas, podría ser beneficioso aplicar una transformación logarítmica o raíz cuadrada a los datos para ayudar a reducir la asimetría y mejorar la normalidad.
+```{r}
+transformed_data <- log(numeric_data + 1)
+for (var in selected_vars) {
+     hist(numeric_data[[var]], main = paste("Distribución de", var), xlab = var, col = "skyblue", breaks = 15)
+ }
+par(mfrow = c(1, 1))
+```
+
+
+
